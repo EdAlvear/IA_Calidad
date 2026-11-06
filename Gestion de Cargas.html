@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <!-- Meta para asegurar la adaptabilidad en dispositivos móviles y escritorios -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Coordinator Workstation - TMF & Aljex</title>
+    
+    <!-- Carga de Tailwind CSS CDN para el diseño moderno en tonos azules -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Carga de FontAwesome para la iconografía empresarial -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Carga de html2pdf.js para la generación e impresión del reporte en PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Configuración personalizada de Tailwind CSS -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#0a3651',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos personalizados para animaciones y estética de impresión -->
+    <style>
+        /* Tipografía predeterminada Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Ocultar barra de desplazamiento manteniendo funcionalidad scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Animación suave al resaltar campos válidos o erróneos */
+        .transition-input {
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- HEADER / ENCABEZADO PRINCIPAL DE LA APLICACIÓN -->
+    <header class="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <!-- Título del software y Rol -->
+            <div class="flex items-center space-x-3">
+                <div class="p-2.5 bg-white/10 rounded-xl backdrop-blur-md border border-white/20">
+                    <i class="fa-solid fa-truck-fast text-2xl text-blue-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Shipment Management Center</h1>
+                    <p class="text-xs text-blue-200 flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        Rol Activo: <strong class="text-white font-medium">SHIPMENT COORDINATOR</strong>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contador de Cargas Procesadas en Tiempo Real -->
+            <div class="flex items-center gap-4">
+                <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-2 flex items-center gap-3">
+                    <div class="bg-blue-500/30 p-2 rounded-lg">
+                        <i class="fa-solid fa-boxes-packing text-xl text-blue-200"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-medium text-blue-200 uppercase tracking-wider block">Cargas Procesadas</span>
+                        <span id="counterValue" class="text-2xl font-extrabold text-white leading-none">0</span>
+                    </div>
+                </div>
+
+                <!-- Botón rápido para ir a descargar el PDF -->
+                <button onclick="downloadPDF()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span>Descargar Reporte</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- SECCIÓN 1: GUÍA INTERACTIVA DEL FLUJO DE TRABAJO (TMF -> ALJEX) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <h2 class="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
+                <i class="fa-solid fa-diagram-project text-brand-600"></i>
+                Guía Visual del Flujo Operativo (TMF & Aljex)
+            </h2>
+            
+            <!-- Pasos del Proceso -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                <!-- Paso 1 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 1</span>
+                            <span class="text-xs text-brand-700 font-semibold">TMF</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">Validación de Datos</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Comparar Shipment No. con hoja de cálculo.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i>Si difiere, escalar a Upper Management.
+                    </div>
+                </div>
+
+                <!-- Paso 2 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 2</span>
+                            <span class="text-xs text-purple-700 font-semibold">ALJEX</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">Asignación de Orden</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Ingresar Order Number de 6 dígitos.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-purple-700 bg-purple-50 p-1.5 rounded border border-purple-200">
+                        Abre el perfil para la transferencia.
+                    </div>
+                </div>
+
+                <!-- Paso 3 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 3</span>
+                            <span class="text-xs text-purple-700 font-semibold">ALJEX</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">Modalidad</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Ajustar modalidad de transporte.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-emerald-700 bg-emerald-50 p-1.5 rounded border border-emerald-200 font-medium">
+                        Default: VAN-AIR RIDE-TEAM
+                    </div>
+                </div>
+
+                <!-- Paso 4 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 4</span>
+                            <span class="text-xs text-purple-700 font-semibold">ALJEX</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">Conversión Peso</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Convertir Kg a Libras (lbs).</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-blue-700 bg-blue-50 p-1.5 rounded border border-blue-200">
+                        Usar calculadora integrada.
+                    </div>
+                </div>
+
+                <!-- Paso 5 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 5</span>
+                            <span class="text-xs text-purple-700 font-semibold">ALJEX</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">Cliente & Fechas</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Ajustar datos de perfil.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-slate-700 bg-slate-100 p-1.5 rounded border border-slate-200 font-medium">
+                        Cliente: LAST MILE ISH-ISH
+                    </div>
+                </div>
+
+                <!-- Paso 6 -->
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold text-white bg-brand-600 px-1.5 py-0.5 rounded">PASO 6</span>
+                            <span class="text-xs text-emerald-700 font-semibold">FINAL</span>
+                        </div>
+                        <h3 class="text-xs font-bold text-slate-700">BOL Document</h3>
+                        <p class="text-[11px] text-slate-500 mt-1">Generar BOL en TMF y adjuntar en Aljex.</p>
+                    </div>
+                    <div class="mt-2 text-[10px] text-emerald-800 bg-emerald-100 p-1.5 rounded border border-emerald-300 font-bold text-center">
+                        Proceso completado
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2 & 3: FORMULARIO PRINCIPAL Y HERRAMIENTA RÁPIDA DE CONVERSIÓN -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- FORMULARIO DE REGISTRO (2 Columnas en pantallas grandes) -->
+            <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between mb-5 border-b pb-3 border-slate-100">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-to-square text-brand-600"></i>
+                                Formulario de Registro de Carga
+                            </h2>
+                            <p class="text-xs text-slate-500">Ingresa los 4 parámetros obligatorios para registrar la sesión.</p>
+                        </div>
+                        <span class="text-xs font-semibold text-brand-700 bg-brand-50 px-2.5 py-1 rounded-full border border-brand-100">
+                            Validación Estricta Activa
+                        </span>
+                    </div>
+
+                    <!-- Notificación de Alerta / Mensaje de Error Centralizado -->
+                    <div id="alertBox" class="hidden mb-5 p-4 rounded-xl border text-sm flex items-start gap-3 transition-all duration-300">
+                        <i id="alertIcon" class="fa-solid text-base mt-0.5"></i>
+                        <div id="alertMessage" class="flex-1 font-medium"></div>
+                    </div>
+
+                    <!-- Formulario de 4 Entradas de Variables -->
+                    <form id="shipmentForm" onsubmit="event.preventDefault(); saveShipment();" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            
+                            <!-- Campo 1: Shipment Number -->
+                            <div>
+                                <label for="shipmentNumber" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    Shipment Number <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-barcode"></i>
+                                    </div>
+                                    <input type="text" id="shipmentNumber" placeholder="Ej: CCC123456"
+                                        class="transition-input w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 uppercase font-mono"
+                                        required>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Debe iniciar con <strong class="text-brand-700">CCC</strong> (Alfanumérico).</p>
+                                <p id="err-shipmentNumber" class="text-[11px] text-red-600 hidden font-medium mt-0.5"></p>
+                            </div>
+
+                            <!-- Campo 2: R-ID -->
+                            <div>
+                                <label for="rId" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    R-ID <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-hashtag"></i>
+                                    </div>
+                                    <input type="text" id="rId" placeholder="Ej: R-98765"
+                                        class="transition-input w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                                        required>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Debe iniciar con <strong class="text-brand-700">R-</strong> en mayúscula.</p>
+                                <p id="err-rId" class="text-[11px] text-red-600 hidden font-medium mt-0.5"></p>
+                            </div>
+
+                            <!-- Campo 3: Job No -->
+                            <div>
+                                <label for="jobNo" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    Job No. <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-briefcase"></i>
+                                    </div>
+                                    <input type="text" id="jobNo" placeholder="Ej: 884920"
+                                        class="transition-input w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                                        required>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Valor únicamente numérico.</p>
+                                <p id="err-jobNo" class="text-[11px] text-red-600 hidden font-medium mt-0.5"></p>
+                            </div>
+
+                            <!-- Campo 4: Order Number -->
+                            <div>
+                                <label for="orderNumber" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                    Order Number <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                                        <i class="fa-solid fa-file-invoice"></i>
+                                    </div>
+                                    <input type="text" id="orderNumber" placeholder="Ej: 123456" maxlength="6"
+                                        class="transition-input w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-500 font-mono"
+                                        required>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Numérico de máximo 6 dígitos.</p>
+                                <p id="err-orderNumber" class="text-[11px] text-red-600 hidden font-medium mt-0.5"></p>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="pt-4 flex flex-wrap gap-3 justify-end border-t border-slate-100">
+                            <button type="button" onclick="clearForm()" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl text-sm transition">
+                                <i class="fa-solid fa-rotate-left mr-1"></i> Limpiar Campos
+                            </button>
+                            <button type="submit" class="px-6 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm shadow-lg shadow-brand-600/30 transition flex items-center gap-2">
+                                <i class="fa-solid fa-floppy-disk"></i>
+                                Guardar Carga
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- HERRAMIENTA INTEGRADA: CALCULADORA DE PESO KG A LBS -->
+            <div class="bg-gradient-to-br from-brand-900 to-brand-800 text-white rounded-2xl shadow-md p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-2 mb-4 pb-2 border-b border-white/10">
+                        <i class="fa-solid fa-calculator text-xl text-blue-300"></i>
+                        <h2 class="text-base font-bold">Conversor de Peso Aljex</h2>
+                    </div>
+                    <p class="text-xs text-blue-200 mb-4">
+                        Realiza la conversión requerida de Kilos (Kg) a Libras (Lbs) para la actualización en el perfil de Aljex.
+                    </p>
+
+                    <div class="space-y-4">
+                        <!-- Entrada Kilos -->
+                        <div>
+                            <label for="kgInput" class="block text-xs font-medium text-blue-200 mb-1">Peso en Kilogramos (Kg)</label>
+                            <div class="relative">
+                                <input type="number" id="kgInput" step="any" placeholder="Ingresa Kg..."
+                                    oninput="convertKgToLbs()"
+                                    class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-300/50 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 font-mono">
+                                <span class="absolute right-3 top-2.5 text-xs text-blue-300 font-semibold">kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Icono de Flechas -->
+                        <div class="text-center text-blue-300">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </div>
+
+                        <!-- Resultado Libras -->
+                        <div>
+                            <label for="lbsResult" class="block text-xs font-medium text-blue-200 mb-1">Peso Equivalente en Libras (Lbs)</label>
+                            <div class="relative">
+                                <input type="text" id="lbsResult" readonly placeholder="0.00"
+                                    class="w-full px-3 py-2 bg-emerald-500/20 border border-emerald-400/40 rounded-xl text-emerald-200 text-sm font-bold font-mono readonly">
+                                <span class="absolute right-3 top-2.5 text-xs text-emerald-300 font-semibold">lbs</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Variables Constantes -->
+                <div class="mt-6 pt-4 border-t border-white/10 space-y-2 text-[11px] text-blue-200">
+                    <div class="flex justify-between">
+                        <span>Modalidad Default:</span>
+                        <strong class="text-white">VAN-AIR RIDE-TEAM</strong>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Cliente Constante:</span>
+                        <strong class="text-white">LAST MILE ISH-ISH</strong>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- SECCIÓN 4: TABLA INTERACTIVA DE CARGAS DE LA SESIÓN -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-brand-600"></i>
+                        Registro de Cargas de la Sesión Actual
+                    </h2>
+                    <p class="text-xs text-slate-500">Historial ordenado de cargas validadas durante la jornada.</p>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button onclick="clearSessionList()" class="text-xs text-red-600 hover:text-red-700 hover:bg-red-50 font-medium px-3 py-1.5 rounded-lg border border-red-200 transition">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Vaciar Lista
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de datos -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200 text-[11px] uppercase font-bold text-slate-600 tracking-wider">
+                            <th class="py-3 px-4">#</th>
+                            <th class="py-3 px-4">Shipment Number</th>
+                            <th class="py-3 px-4">R-ID</th>
+                            <th class="py-3 px-4">Job No</th>
+                            <th class="py-3 px-4">Order Number</th>
+                            <th class="py-3 px-4">Hora de Registro</th>
+                            <th class="py-3 px-4 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="shipmentTableBody" class="divide-y divide-slate-100 text-xs">
+                        <!-- Fila por defecto cuando está vacía -->
+                        <tr id="emptyRow">
+                            <td colspan="7" class="py-8 text-center text-slate-400 italic">
+                                <i class="fa-solid fa-box-open text-2xl block mb-2 opacity-50"></i>
+                                Ninguna carga procesada en la sesión actual.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER / PIE DE PÁGINA -->
+    <footer class="bg-slate-200 border-t border-slate-300 py-4 mt-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-600">
+            Shipment Coordinator Workspace &copy; Software TMF / Aljex Management Helper.
+        </div>
+    </footer>
+
+    <!-- PLANTILLA OCULTA PARA IMPRESIÓN Y DESCARGA EN PDF -->
+    <!-- Este contenedor solo se renderiza al generar el archivo PDF para asegurar el formato empresarial exigido -->
+    <div class="hidden">
+        <div id="pdfTemplate" class="p-8 bg-white text-slate-800 font-sans">
+            <!-- Encabezado del PDF -->
+            <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900 tracking-wide uppercase">Reporte de Cargas Procesadas</h1>
+                    <p class="text-sm text-slate-600">Rol: Shipment Coordinator | TMF & Aljex Operations</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs font-bold text-slate-500 uppercase">Fecha de Emisión</p>
+                    <p id="pdfDate" class="text-sm font-semibold text-slate-800"></p>
+                </div>
+            </div>
+
+            <!-- Datos de Resumen -->
+            <div class="bg-slate-100 p-4 rounded-lg mb-6 flex justify-between items-center border border-slate-200">
+                <div>
+                    <span class="text-xs font-bold uppercase text-slate-500 block">Total de Cargas Trabajadas</span>
+                    <span id="pdfTotalCount" class="text-xl font-extrabold text-slate-800">0</span>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase text-slate-500 block">Cliente Predeterminado</span>
+                    <span class="text-sm font-semibold text-slate-800">LAST MILE ISH-ISH</span>
+                </div>
+                <div>
+                    <span class="text-xs font-bold uppercase text-slate-500 block">Modalidad Predeterminada</span>
+                    <span class="text-sm font-semibold text-slate-800">VAN-AIR RIDE-TEAM</span>
+                </div>
+            </div>
+
+            <!-- Tabla en PDF -->
+            <table class="w-full text-left border-collapse border border-slate-300 text-xs mb-8">
+                <thead>
+                    <tr class="bg-slate-800 text-white font-bold uppercase">
+                        <th class="p-2 border border-slate-300">#</th>
+                        <th class="p-2 border border-slate-300">Shipment Number</th>
+                        <th class="p-2 border border-slate-300">R-ID</th>
+                        <th class="p-2 border border-slate-300">Job No</th>
+                        <th class="p-2 border border-slate-300">Order Number</th>
+                        <th class="p-2 border border-slate-300">Hora</th>
+                    </tr>
+                </thead>
+                <tbody id="pdfTableBody">
+                    <!-- Rellenado dinámicamente con JS -->
+                </tbody>
+            </table>
+
+            <!-- Firmas / Pie de Reporte PDF -->
+            <div class="mt-12 pt-6 border-t border-slate-300 flex justify-between text-xs text-slate-500">
+                <p>Generado por el Sistema de Gestión de Shipment Coordinator</p>
+                <p>Firma / Conformidad: ___________________________</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGICA JAVASCRIPT Y CONTROLADORES -->
+    <script>
+        // Array global para almacenar la lista de cargas procesadas en la sesión
+        let shipmentList = [];
+
+        /**
+         * Realiza la conversión automática de Kilogramos a Libras
+         */
+        function convertKgToLbs() {
+            const kgVal = parseFloat(document.getElementById('kgInput').value);
+            const lbsResultInput = document.getElementById('lbsResult');
+            
+            if (!isNaN(kgVal) && kgVal >= 0) {
+                // Multiplicación exacta por la constante 2.20462
+                const lbsVal = (kgVal * 2.20462).toFixed(2);
+                lbsResultInput.value = lbsVal;
+            } else {
+                lbsResultInput.value = '';
+            }
+        }
+
+        /**
+         * Muestra alertas dinámicas de error o éxito
+         * @param {string} message - Texto del mensaje a mostrar
+         * @param {string} type - 'error' o 'success'
+         */
+        function showAlert(message, type = 'error') {
+            const alertBox = document.getElementById('alertBox');
+            const alertIcon = document.getElementById('alertIcon');
+            const alertMessage = document.getElementById('alertMessage');
+
+            alertBox.classList.remove('hidden', 'bg-red-50', 'border-red-200', 'text-red-800', 'bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+
+            if (type === 'error') {
+                alertBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800');
+                alertIcon.className = 'fa-solid fa-circle-exclamation text-red-600 text-base mt-0.5';
+            } else {
+                alertBox.classList.add('bg-emerald-50', 'border-emerald-200', 'text-emerald-800');
+                alertIcon.className = 'fa-solid fa-circle-check text-emerald-600 text-base mt-0.5';
+            }
+
+            alertMessage.textContent = message;
+            alertBox.classList.remove('hidden');
+        }
+
+        /**
+         * Oculta la caja de alertas
+         */
+        function hideAlert() {
+            document.getElementById('alertBox').classList.add('hidden');
+        }
+
+        /**
+         * Limpia los mensajes de error en línea bajo cada input
+         */
+        function clearInlineErrors() {
+            const inputs = ['shipmentNumber', 'rId', 'jobNo', 'orderNumber'];
+            inputs.forEach(id => {
+                const inputElem = document.getElementById(id);
+                const errElem = document.getElementById(`err-${id}`);
+                inputElem.classList.remove('border-red-500', 'ring-2', 'ring-red-200');
+                errElem.classList.add('hidden');
+                errElem.textContent = '';
+            });
+        }
+
+        /**
+         * Muestra un error específico en un campo de texto determinado
+         */
+        function showInlineError(inputId, msg) {
+            const inputElem = document.getElementById(inputId);
+            const errElem = document.getElementById(`err-${inputId}`);
+            
+            inputElem.classList.add('border-red-500', 'ring-2', 'ring-red-200');
+            errElem.textContent = msg;
+            errElem.classList.remove('hidden');
+        }
+
+        /**
+         * Validador Principal del Formulario según reglas de negocio requeridas
+         */
+        function validateInputs(shipmentNumber, rId, jobNo, orderNumber) {
+            clearInlineErrors();
+            hideAlert();
+            let isValid = true;
+
+            // Rule 1: Shipment Number alfanumérico que siempre debe iniciar con "CCC" en mayúscula
+            if (!shipmentNumber.startsWith('CCC')) {
+                showInlineError('shipmentNumber', 'Debe iniciar obligatoriamente con CCC (Mayúsculas).');
+                showAlert('La información ingresada en Shipment Number no es correcta. Debe iniciar con CCC.', 'error');
+                isValid = false;
+            }
+
+            // Rule 2: R-ID debe iniciar con "R-" en mayúscula
+            if (!rId.startsWith('R-')) {
+                showInlineError('rId', 'Debe iniciar obligatoriamente con R- (Mayúscula).');
+                if (isValid) showAlert('La información en R-ID no es correcta. Debe iniciar con el prefijo R-.', 'error');
+                isValid = false;
+            }
+
+            // Rule 3: Job No debe ser únicamente numérico
+            const numericRegex = /^\d+$/;
+            if (!numericRegex.test(jobNo)) {
+                showInlineError('jobNo', 'Debe contener únicamente caracteres numéricos.');
+                if (isValid) showAlert('La información en Job No debe ser estrictamente numérica.', 'error');
+                isValid = false;
+            }
+
+            // Rule 4: Order Number debe ser numérico y MÁXIMO 6 dígitos
+            if (!numericRegex.test(orderNumber)) {
+                showInlineError('orderNumber', 'Debe ser estrictamente numérico.');
+                if (isValid) showAlert('La información en Order Number debe contener únicamente números.', 'error');
+                isValid = false;
+            } else if (orderNumber.length > 6) {
+                showInlineError('orderNumber', 'Supera la longitud máxima de 6 dígitos.');
+                if (isValid) showAlert('El Order Number no puede exceder los 6 dígitos.', 'error');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        /**
+         * Guarda la carga validada en la lista y actualiza los contadores
+         */
+        function saveShipment() {
+            // Capturar valores
+            const shipmentNumber = document.getElementById('shipmentNumber').value.trim();
+            const rId = document.getElementById('rId').value.trim();
+            const jobNo = document.getElementById('jobNo').value.trim();
+            const orderNumber = document.getElementById('orderNumber').value.trim();
+
+            // Ejecutar validaciones estrictas
+            if (!validateInputs(shipmentNumber, rId, jobNo, orderNumber)) {
+                return;
+            }
+
+            // Obtener la hora actual de guardado
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+            // Crear el objeto de carga
+            const newShipment = {
+                id: shipmentList.length + 1,
+                shipmentNumber: shipmentNumber,
+                rId: rId,
+                jobNo: jobNo,
+                orderNumber: orderNumber,
+                timestamp: timeString
+            };
+
+            // Agregar a la lista de la sesión
+            shipmentList.push(newShipment);
+
+            // Actualizar la interfaz de usuario
+            renderTable();
+            updateCounter();
+            clearForm();
+
+            // Mensaje de Confirmación Exitoso
+            showAlert(`¡Carga ${shipmentNumber} registrada con éxito en la sesión!`, 'success');
+        }
+
+        /**
+         * Vacía y limpia los campos del formulario
+         */
+        function clearForm() {
+            document.getElementById('shipmentForm').reset();
+            clearInlineErrors();
+        }
+
+        /**
+         * Actualiza el contador de cargas procesadas en el Header
+         */
+        function updateCounter() {
+            document.getElementById('counterValue').textContent = shipmentList.length;
+        }
+
+        /**
+         * Renderiza la tabla HTML interactiva con la lista de datos
+         */
+        function renderTable() {
+            const tableBody = document.getElementById('shipmentTableBody');
+
+            if (shipmentList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr id="emptyRow">
+                        <td colspan="7" class="py-8 text-center text-slate-400 italic">
+                            <i class="fa-solid fa-box-open text-2xl block mb-2 opacity-50"></i>
+                            Ninguna carga procesada en la sesión actual.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = shipmentList.map((item, index) => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="py-3 px-4 font-bold text-slate-500">${index + 1}</td>
+                    <td class="py-3 px-4 font-mono font-bold text-brand-700">${item.shipmentNumber}</td>
+                    <td class="py-3 px-4 font-mono text-slate-700">${item.rId}</td>
+                    <td class="py-3 px-4 font-mono text-slate-700">${item.jobNo}</td>
+                    <td class="py-3 px-4 font-mono text-slate-700">${item.orderNumber}</td>
+                    <td class="py-3 px-4 text-slate-500">${item.timestamp}</td>
+                    <td class="py-3 px-4 text-center">
+                        <button onclick="deleteShipment(${index})" class="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition" title="Eliminar registro">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        /**
+         * Elimina un elemento de la lista por su índice
+         */
+        function deleteShipment(index) {
+            shipmentList.splice(index, 1);
+            renderTable();
+            updateCounter();
+        }
+
+        /**
+         * Borra toda la lista de la sesión actual
+         */
+        function clearSessionList() {
+            if (shipmentList.length === 0) return;
+            shipmentList = [];
+            renderTable();
+            updateCounter();
+            showAlert('Se ha vaciado la lista de cargas de la sesión.', 'success');
+        }
+
+        /**
+         * Exporta y descarga la lista de cargas procesadas en un documento PDF formateado
+         */
+        function downloadPDF() {
+            if (shipmentList.length === 0) {
+                showAlert('No hay cargas registradas en la lista para exportar a PDF.', 'error');
+                return;
+            }
+
+            // Actualizar información en la plantilla del PDF
+            const pdfDateElem = document.getElementById('pdfDate');
+            const pdfTotalCountElem = document.getElementById('pdfTotalCount');
+            const pdfTableBody = document.getElementById('pdfTableBody');
+
+            const today = new Date();
+            pdfDateElem.textContent = today.toLocaleDateString() + ' ' + today.toLocaleTimeString();
+            pdfTotalCountElem.textContent = shipmentList.length;
+
+            // Rellenar filas del PDF
+            pdfTableBody.innerHTML = shipmentList.map((item, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-white' : 'bg-slate-50'}">
+                    <td class="p-2 border border-slate-300 font-bold">${index + 1}</td>
+                    <td class="p-2 border border-slate-300 font-mono font-bold text-blue-900">${item.shipmentNumber}</td>
+                    <td class="p-2 border border-slate-300 font-mono">${item.rId}</td>
+                    <td class="p-2 border border-slate-300 font-mono">${item.jobNo}</td>
+                    <td class="p-2 border border-slate-300 font-mono">${item.orderNumber}</td>
+                    <td class="p-2 border border-slate-300">${item.timestamp}</td>
+                </tr>
+            `).join('');
+
+            // Elemento HTML que se convertirá a PDF
+            const element = document.getElementById('pdfTemplate');
+
+            // Opciones de configuración de html2pdf.js
+            const opt = {
+                margin:       10,
+                filename:     `Reporte_Cargas_Session_${today.toISOString().slice(0,10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Generar y descargar automáticamente
+            html2pdf().set(opt).from(element).save();
+        }
+    </script>
+</body>
+</html>
